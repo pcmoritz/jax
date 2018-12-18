@@ -16,13 +16,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from six.moves import builtins
-
-import six
-import numpy as onp
-import opt_einsum
 import collections
 import itertools
+import string
+
+import numpy as onp
+import opt_einsum
+import six
+from six.moves import builtins
 
 from jax import jit
 from .. import core
@@ -1075,7 +1076,7 @@ def _einsum(operands, contractions):
     if uniques:
       axes = [names.index(name) for name in uniques]
       operand = sum(operand, axes)
-      names = names.translate(None, ''.join(uniques))
+      names = names.translate(string.maketrans('', ''), ''.join(uniques))
     return operand, names
 
   def sum_repeats(operand, names, counts, keep_names):
@@ -1151,8 +1152,8 @@ def _einsum(operands, contractions):
         operand = _dot_general(lhs, rhs, lhs_cont, rhs_cont, len(batch_dims))
         deleted_names = batch_names + ''.join(contracted_names)
         names = (batch_names
-                + lhs_names.translate(None, deleted_names)
-                + rhs_names.translate(None, deleted_names))
+                 + lhs_names.translate(string.maketrans('', ''), deleted_names)
+                 + rhs_names.translate(string.maketrans('', ''), deleted_names))
       else:
         # no contraction, just a tensor product
         if lhs_batch != rhs_batch:
