@@ -33,15 +33,11 @@ from .. import lax
 from ..util import memoize, partial, get_module_functions, unzip2, prod as _prod
 from ..lib import xla_bridge
 
-# To provide the same module-level names as Numpy, we need to redefine builtins
-# and also use some common names (like 'shape' and 'dtype') at the top-level.
-# pylint: disable=redefined-builtin,redefined-outer-name
-
-# There might be a pylint bug with tuple unpacking.
-# pylint: disable=unbalanced-tuple-unpacking
-
-# We get docstrings from the underlying numpy functions.
-# pylint: disable=missing-docstring
+if six.PY3:
+  def maketrans(s1, s2):
+    return s1.maketrans(s1, s2)
+else:
+  maketrans = string.maketrans
 
 
 # We replace some builtin names to follow Numpy's API, so we capture here.
@@ -1076,7 +1072,7 @@ def _einsum(operands, contractions):
     if uniques:
       axes = [names.index(name) for name in uniques]
       operand = sum(operand, axes)
-      names = names.translate(string.maketrans('', ''), ''.join(uniques))
+      names = names.translate(maketrans('', ''), ''.join(uniques))
     return operand, names
 
   def sum_repeats(operand, names, counts, keep_names):
@@ -1152,8 +1148,8 @@ def _einsum(operands, contractions):
         operand = _dot_general(lhs, rhs, lhs_cont, rhs_cont, len(batch_dims))
         deleted_names = batch_names + ''.join(contracted_names)
         names = (batch_names
-                 + lhs_names.translate(string.maketrans('', ''), deleted_names)
-                 + rhs_names.translate(string.maketrans('', ''), deleted_names))
+                 + lhs_names.translate(maketrans('', ''), deleted_names)
+                 + rhs_names.translate(maketrans('', ''), deleted_names))
       else:
         # no contraction, just a tensor product
         if lhs_batch != rhs_batch:
