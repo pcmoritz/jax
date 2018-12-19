@@ -69,6 +69,14 @@ def glorot(out_dim=0, in_dim=1, scale=onp.sqrt(2), rng=npr):
     return rng.normal(size=shape, scale=std).astype('float32')
   return init
 
+def he_normal(out_dim=0, in_dim=1, out_chan=1, rng=npr):
+  """An initializer function for random Glorot-scaled coefficients."""
+  def init(shape):
+    n = shape[in_dim] * shape[out_dim] * out_chan
+    std = np.sqrt(2.0 / n)
+    return rng.normal(size=shape, scale=std).astype('float32')
+  return init
+
 zeros = functools.partial(np.zeros, dtype='float32')
 ones = functools.partial(np.ones, dtype='float32')
 
@@ -98,7 +106,7 @@ def GeneralConv(dimension_numbers, out_chan, filter_shape,
   lhs_spec, rhs_spec, out_spec = dimension_numbers
   one = (1,) * len(filter_shape)
   strides = strides or one
-  W_init = W_init or glorot(rhs_spec.index('O'), rhs_spec.index('I'))
+  W_init = W_init or he_normal(rhs_spec.index('O'), rhs_spec.index('I'), out_chan)
   def init_fun(input_shape):
     filter_shape_iter = iter(filter_shape)
     kernel_shape = [out_chan if c == 'O' else
